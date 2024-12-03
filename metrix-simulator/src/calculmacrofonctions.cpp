@@ -216,6 +216,12 @@ int Calculer::resolutionProbleme()
         return METRIX_PROBLEME;
     }
 
+    // PTDFs assessment and print:
+    std::string PTDFfileName = "PTDF_matrix_N.csv";
+    if (config::inputConfiguration().writePTDFfile() || config::configuration().writePTDFs()) {
+        assessAndPrintPTDF(PTDFfileName);
+    }
+
     // 2-parcourir toutes les variantes
     //--------------------------------
     auto mapVarEnd = variantesOrdonnees_.end();
