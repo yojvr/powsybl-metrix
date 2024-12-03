@@ -347,11 +347,13 @@ double Configuration::thresholdMaxITAM(double thresholdMaxInc, double thresholdM
     // In case threshold max before curative is defined but not threshold max inc,
     // we'll use threshold max before curative instead for threshold max inc
 
+    LOG(info) << "test ITAM ? " << test_seuil_itam_ << " seuil max = " << thresholdMaxInc << " valdef = " << constants::valdef;
     if (!test_seuil_itam_ || thresholdMaxInc != constants::valdef) {
         return thresholdMaxInc;
     }
 
     // This implies that in case both equal valdef, we return valdef
+    LOG(info) << "\t ==> " << thresholdMaxBeforeCur;
     return thresholdMaxBeforeCur;
 }
 

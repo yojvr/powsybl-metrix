@@ -1324,9 +1324,10 @@ double ElementASurveiller::seuilMax(const std::shared_ptr<Incident>& icdt) const
     }
 
     if (icdt->incidentComplexe_ && seuilMaxIncComplexe_ != config::constants::valdef) {
+        LOG(info) << "\tITAM threshold: icdt->incidentComplexe_ && seuilMaxIncComplexe_ != config::constants::valdef";
         return config.thresholdMaxITAM(seuilMaxIncComplexe_, seuilMaxAvantCurIncComplexe_);
     }
-
+    LOG(info) << "\tITAM threshold: !icdt->incidentComplexe_ || seuilMaxIncComplexe_ == config::constants::valdef";
     return config.thresholdMaxITAM(seuilMaxInc_, seuilMaxAvantCur_);
 }
 
@@ -1356,10 +1357,11 @@ double ElementASurveiller::seuilMin(const std::shared_ptr<Incident>& icdt) const
         }
 
         if (icdt->incidentComplexe_) {
+            LOG(info) << "ITAM threshold: icdt->incidentComplexe_";
             double threshold = config.thresholdMaxITAM(seuilMaxIncComplexeExOr_, seuilMaxAvantCurIncComplexeExOr_);
             return checkThreshold(threshold);
         }
-
+        LOG(info) << "ITAM threshold: !icdt->incidentComplexe_";
         double threshold = config.thresholdMaxITAM(seuilMaxIncExOr_, seuilMaxAvantCurExOr_);
         return checkThreshold(threshold);
     }

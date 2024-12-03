@@ -1293,10 +1293,12 @@ int Calculer::metrix2Assess(const std::shared_ptr<Variante>& var, const vector<d
         // Resultats des parades
         auto incEtParIt = res_.incidentsEtParades_.cbegin();
         advance(incEtParIt, res_.nbIncidentsHorsParades_);
-
+        LOG(info) << "NB parades => " << (res_.incidentsEtParades_.size() - res_.nbIncidentsHorsParades_);
         for (; incEtParIt != res_.incidentsEtParades_.end(); ++incEtParIt) {
             const auto& icdt = *incEtParIt;
-
+            LOG(info) << "\t for " << icdt->numVarActivation_ << " parade ? " << icdt->parade_;
+            LOG(info) << "\t for " << icdt->numVarActivation_ << " validite_ ? " << icdt->validite_;
+            LOG(info) << "\t for " << icdt->numVarActivation_ << " pbX_ ? " << pbX_[icdt->numVarActivation_];
             if ((!icdt->parade_) || (!icdt->validite_)) {
                 continue;
             }

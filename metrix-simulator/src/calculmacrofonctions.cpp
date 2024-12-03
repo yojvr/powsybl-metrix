@@ -644,6 +644,7 @@ int Calculer::resolutionUnProblemeDodu(const std::shared_ptr<Variante>& variante
             ajouterContrainteDeltaConsVarEntiere(td);
             pbX_[numVarInt] = 0;
             pbTypeDeBorneDeLaVariable_[numVarInt] = VARIABLE_FIXE;
+            LOG(info) << " VARFIX bloc "<< numVarInt;
         }
 
         // Obligatoire sinon pb si pas de contraintes détectées à l'étape suivantes

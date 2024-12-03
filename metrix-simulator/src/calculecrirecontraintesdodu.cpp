@@ -94,6 +94,11 @@ int Calculer::allocationProblemeDodu()
     //------------------------------------------------------------
 
     pbNombreDeVariables_ = res_.nbVarGroupes_ + res_.nbVarConsos_ + res_.nbVarTd_ + res_.nbVarCc_;
+    LOG(info) << "YJ, NB VAR TD :" << res_.nbTd_;
+    for(auto ptd: res_.tdParIndice_)
+    {
+        LOG(info) << "YJ, TD numVar = " << ptd->numVar_ << " and num = " << ptd->num_;
+    }
     // cout<<"-->pbNombreDeVariables_ : "<<pbNombreDeVariables_<<endl;
     if (pbNombreDeVariables_ == 0) {
         LOG_ALL(info) << err::ioDico().msg("ERRCalcVarnul");
@@ -231,11 +236,13 @@ int Calculer::ecrireContraintesDeBordGroupesDodu()
                     // A la hausse
                     pbXmin_[numVar] = 0.0;
                     pbXmax_[numVar] = grp->puisMax_ - grp->prodPobj_;
+                    LOG(info) << " 0 pbXmax_ "<< numVar << " to " << grp->puisMax_ - grp->prodPobj_;
                     pbCoutLineaire_[numVar] = std::max(grp->coutHausseHR_, config::configuration().noiseCost())
                                               + config::configuration().adequacyCostOffset();
                     // A la baisse
                     pbXmin_[numVar + 1] = 0.0;
                     pbXmax_[numVar + 1] = grp->prodPobj_ - grp->puisMin_;
+                    LOG(info) << " 1 pbXmax_ "<< numVar + 1 << " to " << grp->prodPobj_ - grp->puisMin_;
                     pbCoutLineaire_[numVar + 1] = std::max(grp->coutBaisseHR_, config::configuration().noiseCost())
                                                   + config::configuration().adequacyCostOffset();
 
@@ -243,11 +250,13 @@ int Calculer::ecrireContraintesDeBordGroupesDodu()
                     // A la hausse
                     pbXmin_[numVar] = grp->puisMin_ - grp->prodPobj_;
                     pbXmax_[numVar] = grp->puisMax_ - grp->prodPobj_;
+                    LOG(info) << " 2 pbXmax_ "<< numVar << " to " << grp->puisMax_ - grp->prodPobj_;
                     pbCoutLineaire_[numVar] = std::max(grp->coutHausseHR_, config::configuration().noiseCost())
                                               + config::configuration().adequacyCostOffset();
                     // A la baisse
                     pbXmin_[numVar + 1] = 0.0;
                     pbXmax_[numVar + 1] = 0.0;
+                    LOG(info) << " 3 pbXmax_ "<< numVar +1 << " to 0.0";
                     pbCoutLineaire_[numVar + 1] = config::configuration().noiseCost();
                 }
             } else {
@@ -255,11 +264,13 @@ int Calculer::ecrireContraintesDeBordGroupesDodu()
                 // A la hausse
                 pbXmin_[numVar] = 0.;
                 pbXmax_[numVar] = grp->puisMax_ - grp->prodPobj_;
+                LOG(info) << " 4 pbXmax_ "<< numVar << " to " << grp->puisMax_ - grp->prodPobj_;
                 pbCoutLineaire_[numVar] = std::max(grp->coutHausseHR_, config::configuration().noiseCost())
                                           + config::configuration().adequacyCostOffset();
                 // A la baisse
                 pbXmin_[numVar + 1] = 0.;
                 pbXmax_[numVar + 1] = grp->prodPobj_ - grp->puisMin_;
+                LOG(info) << " 5 pbXmax_ "<< numVar + 1 << " to " << grp->prodPobj_ - grp->puisMin_;
                 pbCoutLineaire_[numVar + 1] = std::max(grp->coutBaisseHR_, config::configuration().noiseCost())
                                               + config::configuration().adequacyCostOffset();
             }
@@ -267,18 +278,22 @@ int Calculer::ecrireContraintesDeBordGroupesDodu()
             // A la hausse
             pbXmin_[numVar] = 0.;
             pbXmax_[numVar] = 0.;
+            LOG(info) << " 6 pbXmax_ "<< numVar << " to 0.";
             // A la baisse
             pbXmin_[numVar + 1] = 0.;
             pbXmax_[numVar + 1] = 0.;
+            LOG(info) << " 7 pbXmax_ "<< numVar+1 << " to 0.";
             pbCoutLineaire_[numVar + 1] = config::configuration().noiseCost();
         }
 
         if (pbXmax_[numVar] - pbXmin_[numVar] < config::constants::epsilon) {
+            LOG(info) << " VARFIX max=min "<< numVar;
             pbTypeDeBorneDeLaVariable_[numVar] = VARIABLE_FIXE;
             pbX_[numVar] = pbXmin_[numVar];
         }
 
         if (pbXmax_[numVar + 1] - pbXmin_[numVar + 1] < config::constants::epsilon) {
+            LOG(info) << " VARFIX var + 1 max=min "<< (numVar+1);
             pbTypeDeBorneDeLaVariable_[numVar + 1] = VARIABLE_FIXE;
             pbX_[numVar + 1] = pbXmin_[numVar + 1];
         }
@@ -333,6 +348,7 @@ int Calculer::ecrireContraintesDeBordConsosDodu()
             }
 
             if (pbXmax_[numVar] - pbXmin_[numVar] < config::constants::epsilon) {
+                LOG(info) << " VARFIX2 max=min "<< numVar;
                 pbTypeDeBorneDeLaVariable_[numVar] = VARIABLE_FIXE;
                 pbX_[numVar] = 0.;
             }
@@ -384,12 +400,14 @@ int Calculer::ecrireContraintesDeBordTransformateurDephaseur()
         pbX_[numVarTd] = 0.0;
         pbXmin_[numVarTd] = 0.0;
         pbXmax_[numVarTd] = max(puiMax - td->puiCons_, 0.);
+        LOG(info) << " 10 pbXmax_ "<< numVarTd << " to " << max(puiMax - td->puiCons_, 0.);
         pbCoutLineaire_[numVarTd] = (config::configuration().usePenalisationTD() && !td->fictif_)
                                         ? config::configuration().costTd()
                                         : config::constants::zero_cost_variable;
         pbTypeDeBorneDeLaVariable_[numVarTd] = VARIABLE_BORNEE_DES_DEUX_COTES;
 
         if (pbXmax_[numVarTd] - pbXmin_[numVarTd] < config::constants::epsilon) {
+            LOG(info) << " VARFIX3 max=min "<< numVarTd;
             pbTypeDeBorneDeLaVariable_[numVarTd] = VARIABLE_FIXE;
         }
 
@@ -397,6 +415,7 @@ int Calculer::ecrireContraintesDeBordTransformateurDephaseur()
         pbX_[numVarTd + 1] = 0.0;
         pbXmin_[numVarTd + 1] = 0.0;
         pbXmax_[numVarTd + 1] = max(td->puiCons_ - puiMin, 0.);
+        LOG(info) << " 11 pbXmax_ "<< numVarTd+1 << " to " << max(td->puiCons_ - puiMin, 0.);
         pbCoutLineaire_[numVarTd + 1] = (config::configuration().usePenalisationTD() && !td->fictif_)
                                             ? config::configuration().costTd()
                                             : config::constants::zero_cost_variable;
@@ -404,6 +423,7 @@ int Calculer::ecrireContraintesDeBordTransformateurDephaseur()
 
 
         if (pbXmax_[numVarTd + 1] - pbXmin_[numVarTd + 1] < config::constants::epsilon) {
+            LOG(info) << " VARFIX4 +1 max=min "<< (numVarTd+1);
             pbTypeDeBorneDeLaVariable_[numVarTd + 1] = VARIABLE_FIXE;
         }
     }
@@ -435,7 +455,9 @@ int Calculer::ecrireContraintesDeBordLignesCC()
         if (lcc->type_ == LigneCC::PILOTAGE_PUISSANCE_IMPOSE || lcc->type_ == LigneCC::PILOTAGE_EMULATION_AC) {
             pbXmax_[numVarCc] = 0.;
             pbTypeDeBorneDeLaVariable_[numVarCc] = VARIABLE_FIXE;
+            LOG(info) << " VARFIX ligneCC "<< numVarCc << " because type = " << lcc->type_;
             pbXmax_[numVarCc + 1] = 0.;
+            LOG(info) << " VARFIX +1 ligneCC "<< (numVarCc+1)<< " because type = " << lcc->type_;
             pbTypeDeBorneDeLaVariable_[numVarCc + 1] = VARIABLE_FIXE;
         } else {
             pbXmax_[numVarCc] = max(lcc->puiMax_ - lcc->puiCons_, 0.);
@@ -578,6 +600,7 @@ int Calculer::ecrireContrainteBilanEnergetique(bool parZonesSynchr)
 
         if (nbTermesNonNuls > 0) {
             pbSecondMembre_.push_back(secondMembre);
+            LOG(info) << "YJ: contrainte E de BilanEnergetique numero " << pbSens_.size() << " rhs = " << nbTermesNonNuls;
             pbSens_.push_back('=');
             pbIndicesDebutDeLigne_.push_back(nbElmdeMatrContraint_);
             pbTypeContrainte_.push_back(COUPE_BILAN);
@@ -651,6 +674,7 @@ int Calculer::ajouterContraintesCouplagesConsos()
             pbNombreDeTermesDesLignes_.push_back(2);
             nbElmdeMatrContraint_ += 2;
             nbContraintes++;
+            LOG(info) << "YJ: contrainte E de couplage de var conso numero " << (pbSens_.size()-1) << " rhs = 0";
         }
         pbNombreDeContraintes_ += nbContraintes;
         LOG(debug) << "Ajout des " << nbContraintes
@@ -724,6 +748,7 @@ int Calculer::ajouterContraintesCouplagesGroupes()
             pbNombreDeTermesDesLignes_.push_back(4);
             nbElmdeMatrContraint_ += 4;
             nbContraintes++;
+            LOG(info) << "YJ: contrainte E de couplage de var groupe numero " << (pbSens_.size()-1) << " rhs = 0";
         }
         pbNombreDeContraintes_ += nbContraintes;
         LOG(debug) << "Ajout des " << nbContraintes
@@ -751,6 +776,7 @@ int Calculer::ajouterLimiteCuratifGroupe(const std::map<int, std::vector<int>>& 
         pbNombreDeTermesDesLignes_.push_back(nbVarCurGrp);
         nbElmdeMatrContraint_ += nbVarCurGrp;
         pbSecondMembre_.push_back(config::configuration().limitCurativeGrp());
+        LOG(info) << "YJ: contrainte L de imiteCuratifGroupe numero " << (pbSens_.size()-1) << " rhs = " << (config::configuration().limitCurativeGrp());
         pbNombreDeContraintes_++;
     }
     return METRIX_PAS_PROBLEME;
@@ -819,6 +845,7 @@ int Calculer::ecrireEquationBilanCuratif(
         pbNombreDeTermesDesLignes_.push_back(nbTermes);
         nbElmdeMatrContraint_ += nbTermes;
         pbSecondMembre_.push_back(0.);
+        LOG(info) << "YJ: contrainte E de EquationBilanCuratif numero " << (pbSens_.size()-1) << " rhs = 0";
         pbNombreDeContraintes_++;
     }
     return METRIX_PAS_PROBLEME;
@@ -1494,6 +1521,7 @@ int Calculer::ecrireCoupeTransit(const double& maxTprev,
             icdt->numVarActivation_ = ajouterVariableEntiere(
                 icdt->num_,
                 config::constants::cost_parade * proba * static_cast<double>(incidentPere->contraintes_.size()));
+            LOG(info) << "BISAjout var " << icdt->num_ << " de nom " << icdt->nom_ << " avec cout " << config::constants::cost_parade * proba * static_cast<double>(incidentPere->contraintes_.size()) << " et pbMax=" << pbXmax_[icdt->num_];
             if (coefs_.size() < static_cast<size_t>(pbNombreDeVariables_)) {
                 coefs_.resize(pbNombreDeVariables_, 0.);
             }
@@ -1502,7 +1530,7 @@ int Calculer::ecrireCoupeTransit(const double& maxTprev,
                 && icdt->contraintesAutorisees_.find(ctre->elemAS_) == icdt->contraintesAutorisees_.end()) {
                 pbTypeDeVariable_[icdt->numVarActivation_] = REEL;
                 pbXmax_[icdt->numVarActivation_] = 0;
-                LOG(debug) << "Variable no " << icdt->numVarActivation_ << " de la parade '" << icdt->nom_
+                LOG(info) << "BISVariable no " << icdt->numVarActivation_ << " de la parade '" << icdt->nom_
                            << "' desactivee.";
             }
         }
@@ -1569,7 +1597,6 @@ int Calculer::ecrireCoupeTransit(const double& maxTprev,
     pbIndicesDebutDeLigne_.push_back(nbElmdeMatrContraint_);
 
     pbSecondMembre_.push_back(tmpSecondMembre);
-
     nbElmdeMatrContraint_ += nbTermesNonNuls;
 
     if (ctre->type_ == Contrainte::CONTRAINTE_EMUL_AC_N || ctre->type_ == Contrainte::CONTRAINTE_EMULATION_AC) {
@@ -1603,7 +1630,7 @@ int Calculer::ecrireCoupeTransit(const double& maxTprev,
         pbCoefficientsDeLaMatriceDesContraintes_.push_back(-1.);
         nbElmdeMatrContraint_++;
     }
-
+    LOG(info) << "YJ: contrainte L de CoupeTransit 1 numero " << (pbSens_.size()-1) << " rhs = " << pbSecondMembre_[pbNombreDeContraintes_];
     pbNombreDeContraintes_++;
 
     // Valorisation de la poche perdue
@@ -1647,6 +1674,7 @@ int Calculer::ajoutContrainteActivation(int numContrainteInitiale, int numVarAct
     nbElmdeMatrContraint_ += nbTermesNonNuls;
     pbSecondMembre_.push_back(pbSecondMembre_[numContrainteInitiale]
                               - config::constants::pne_factor_inactive_constraint);
+    LOG(info) << "YJ: contrainte L de Activation numero " << (pbSens_.size()-1) << " rhs = " << pbSecondMembre_[pbNombreDeContraintes_];    
     pbNombreDeContraintes_++;
 
     return METRIX_PAS_PROBLEME;
@@ -1683,6 +1711,7 @@ int Calculer::ajouterContrainteChoixTopo(const std::vector<std::shared_ptr<Incid
     pbSecondMembre_.push_back(1);
     // cout<<" secondMembre "<<cpt - 1<<endl;
     pbNombreDeContraintes_++;
+    LOG(info) << "YJ: contrainte E de choix topo numero " << (pbSens_.size()-1) << " rhs = 1";
 
     return METRIX_PAS_PROBLEME;
 }
@@ -1705,6 +1734,7 @@ void Calculer::ajouterContraintesBorneCuratif(int numVar, int numVarCur, double 
     nbElmdeMatrContraint_ += 2;
     pbSecondMembre_.push_back(Pmax * COEFF_MULT);
     pbNombreDeContraintes_++;
+    LOG(info) << "YJ: contrainte L de borneMAX du TD/HVDC curatif numero " << (pbSens_.size()-1) << " rhs = " << (Pmax * COEFF_MULT);
 
     // -Pcur < -Pmin
     pbTypeContrainte_.push_back(COUPE_AUTRE);
@@ -1719,7 +1749,7 @@ void Calculer::ajouterContraintesBorneCuratif(int numVar, int numVarCur, double 
     nbElmdeMatrContraint_ += 2;
     pbSecondMembre_.push_back(-Pmin * COEFF_MULT);
     pbNombreDeContraintes_++;
-
+    LOG(info) << "YJ: contrainte L de borneMIN du TD/HVDC curatif numero " << (pbSens_.size()-1);
     LOG(debug) << metrix::log::verbose_constraints << "Ajout des contraintes de bornes du TD/HVDC curatif  "
                << numSupportEtat_[numVar];
 }
@@ -1744,7 +1774,7 @@ void Calculer::ajouterContraintesBorneCuratifGroupe(int numVarGrp, int numVarCur
     nbElmdeMatrContraint_ += 3;
     pbSecondMembre_.push_back(grp->puisMax_ - grp->prod_);
     pbNombreDeContraintes_++;
-
+    LOG(info) << "YJ: contrainte L de borneMAX du groupe curatif numero " << (pbSens_.size()-1) << " rhs = " << (grp->puisMax_ - grp->prod_);
     // Pprev - Pcur- > Pmin
     pbTypeContrainte_.push_back(COUPE_AUTRE);
     pbIndicesDebutDeLigne_.push_back(nbElmdeMatrContraint_);
@@ -1760,7 +1790,7 @@ void Calculer::ajouterContraintesBorneCuratifGroupe(int numVarGrp, int numVarCur
     nbElmdeMatrContraint_ += 3;
     pbSecondMembre_.push_back(std::min(0., grp->puisMin_ - grp->prod_));
     pbNombreDeContraintes_++;
-
+    LOG(info) << "YJ: contrainte L de borneMIN du groupe curatif numero " << (pbSens_.size()-1) << " rhs = " << (std::min(0., grp->puisMin_ - grp->prod_));
     LOG(debug) << metrix::log::verbose_constraints << "Ajout des contraintes de bornes du groupe curatif  "
                << numVarGrp / 3;
 }
@@ -1785,7 +1815,7 @@ void Calculer::ajouterContraintesBorneCuratifConso(int numVarPrev, int numVarCur
     nbElmdeMatrContraint_ += 3;
     pbSecondMembre_.push_back(pourcentEff * consoNod);
     pbNombreDeContraintes_++;
-
+    LOG(info) << "YJ: contrainte L de bornes de l'effacement curatif numero " << (pbSens_.size() - 1) << " rhs = " << (pourcentEff * consoNod);
     LOG(debug) << metrix::log::verbose_constraints << "Ajout de la contraintes de bornes de l'effacement curatif "
                << numVarCur << " (numVarPrev = " << numVarPrev << ")";
 }
@@ -1829,6 +1859,7 @@ int Calculer::ajouterContrainteNbMaxActCur(const std::shared_ptr<Incident>& para
     // une seule des variables doit etre activee a 1 <=> parade active
     pbSecondMembre_.push_back(config::configuration().nbMaxActionCurative());
     pbNombreDeContraintes_++;
+    LOG(info) << "YJ: contrainte L de ContrainteNbMaxActCur numero " << (pbSens_.size()-1) << " rhs = " << (config::configuration().nbMaxActionCurative());
 
     return METRIX_PAS_PROBLEME;
 }
@@ -1865,7 +1896,7 @@ int Calculer::ajouterContrainteDeltaConsVarEntiere(const std::shared_ptr<Element
 
     pbSecondMembre_.push_back(0);
     pbNombreDeContraintes_++;
-
+    LOG(info) << "YJ: contrainte L de DeltaConsVarEntiere numero " << (pbSens_.size()-1) << " rhs = 0";
     LOG(debug) << metrix::log::verbose_constraints << "Ajout de la contrainte de desactivation d'un TD/HVDC curatif ";
 
     return METRIX_PAS_PROBLEME;
@@ -1901,7 +1932,7 @@ int Calculer::ajouterContrainteDeltaConsVarEntiere(const std::shared_ptr<Transfo
 
     pbSecondMembre_.push_back(0);
     pbNombreDeContraintes_++;
-
+    LOG(info) << "YJ: contrainte L de DeltaConsVarEntiere numero " << (pbSens_.size()-1) << " rhs = 0";
     LOG(debug) << metrix::log::verbose_constraints
                << "Ajout de la contrainte de desactivation d'un TD fictif en preventif";
 
@@ -2373,8 +2404,11 @@ int Calculer::detectionContraintes(const std::vector<double>& secondMembre /*pha
             }
 
             // determination du seuil max
+            LOG(info) << "icdt " << icdt->nom_;
             maxT = elemAS->seuilMax(icdt);
             minT = elemAS->seuilMin(icdt);
+            LOG(info) << "\tSeuil max = " << maxT;
+            LOG(info) << "\tSeuil min = " << minT;
 
             if (transNew > 0 && maxT != config::constants::valdef) {
                 ecart = std::max(transNew - maxT, 0.);
@@ -2784,9 +2818,11 @@ int Calculer::ajouterVariablesCuratives(const std::shared_ptr<ElementCuratif>& e
 
 
     if (pbXmax_[numVarCur] < config::constants::epsilon) {
+        LOG(info) << " VARFIX eps "<< numVarCur;
         pbTypeDeBorneDeLaVariable_[numVarCur] = VARIABLE_FIXE;
     }
     if (pbXmax_[numVarCur + 1] < config::constants::epsilon) {
+        LOG(info) << " VARFIX +1 eps "<< (numVarCur+1);
         pbTypeDeBorneDeLaVariable_[numVarCur + 1] = VARIABLE_FIXE;
     }
 
@@ -2997,6 +3033,7 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
                     ajouterContrainteDeltaConsVarEntiere(elemC);
                     pbX_[elemC->positionVarEntiereCur_] = 0;
                     pbTypeDeBorneDeLaVariable_[elemC->positionVarEntiereCur_] = VARIABLE_FIXE;
+                    LOG(info) << " VARFIX TD "<< elemC->positionVarEntiereCur_;
                 } else if (config::configuration().useCurative()) {
                     // ajout d'une variable entiere pour comptage des actions curative
                     elemC->positionVarEntiereCur_ = ajouterVariableEntiere(elemC->num(),
@@ -3192,7 +3229,7 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
                 }
             }
         }
-
+        LOG(info) << "YJ, coefsIncident = "<< coefsIncident << " and j1 " << j1;
         // Calcul des coefficient a mettre dans la matrice des contraintes
         if (typeEtat_[j1] == PROD_H) {
             coefs_[j1] += coeff * (b1[numSupportDeEtat] + coefsIncident);
@@ -3206,6 +3243,7 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
             if (td->fictif_) {
                 // dans ce cas le dephasage initial ne doit pas etre pris en compte
                 coefs_[j1] = 0.;
+                LOG(info) << "YJ, j1 "<< j1 <<  " is TD fictif ";
                 continue;
             }
 
@@ -3220,15 +3258,18 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
                 } else {
                     coefs_[j1] = 0.;
                     sumcoeffFixe += coeffInfl * pbX_[j1];
+                    LOG(info) << "YJ, j1 "<< j1 <<  " is to 0 ";
                 }
             } else {
                 coefs_[j1] += coeffInfl;
+                LOG(info) << "YJ, j1 "<< j1 <<  " 1 =>  " << coefs_[j1];
             }
         } else if (typeEtat_[j1] == DEPH_B) {
             const auto& td = res_.tdParIndice_[numSupportDeEtat];
 
             if (td->fictif_) { // le dephasage initial ne doit pas etre pris en compte sur incident
                 coefs_[j1] = 0.;
+                LOG(info) << "YJ, j1 "<< j1 <<  " is ficfit 1 =>  0";
                 continue;
             }
 
@@ -3243,9 +3284,11 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
                 } else {
                     coefs_[j1] = 0.;
                     sumcoeffFixe += coeffInfl * pbX_[j1];
+                    LOG(info) << "YJ, j1 "<< j1 <<  " else => 0";
                 }
             } else {
                 coefs_[j1] += coeffInfl;
+                LOG(info) << "YJ, j1 "<< j1 <<  " 2 =>  " << coefs_[j1];
             }
         } else if (typeEtat_[j1] == LIGNE_CC_H) {
             const auto& lcc = res_.lccParIndice_[numSupportDeEtat];
@@ -3256,12 +3299,15 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
                         / quad->elemAS_->seuilMaxInc_
                     > config::constants::threshold_influence_hvdc) {
                     coefs_[j1] += coeffInfl;
+                    LOG(info) << "YJ, j1 "<< j1 <<  " ligne cc =>  " << coefs_[j1];
                 } else {
                     coefs_[j1] = 0.;
                     sumcoeffFixe += coeffInfl * pbX_[j1];
+                    LOG(info) << "YJ, j1 "<< j1 <<  " ligne cc =>  0";
                 }
             } else {
                 coefs_[j1] += coeffInfl;
+                LOG(info) << "YJ, j1 "<< j1 <<  " ligne cc else =>  " << coefs_[j1];
             }
         } else if (typeEtat_[j1] == LIGNE_CC_B) {
             const auto& lcc = res_.lccParIndice_[numSupportDeEtat];
@@ -3272,14 +3318,17 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
                         / quad->elemAS_->seuilMaxInc_
                     > config::constants::threshold_influence_hvdc) {
                     coefs_[j1] += coeffInfl;
+                    LOG(info) << "YJ, j1 "<< j1 <<  " ligne ccB =>  " << coefs_[j1];
                     LOG(debug) << "LCC " << lcc->nom_ << " agit sur le quadripole " << quad->nom_ << " pour inc "
                                << icdt->nom_;
                 } else {
                     coefs_[j1] = 0.;
+                    LOG(info) << "YJ, j1 "<< j1 <<  " ligne ccB =>  0";
                     sumcoeffFixe += coeffInfl * pbX_[j1];
                 }
             } else {
                 coefs_[j1] += coeffInfl;
+                LOG(info) << "YJ, j1 "<< j1 <<  " ligne ccElse =>  " << coefs_[j1];
             }
         }
     } // Fin variables preventives
@@ -3322,6 +3371,8 @@ int Calculer::coeffPourQuadInc(const std::shared_ptr<Quadripole>& quad,
                                << " de la variable numero " << j1 << " ne peut pas etre traite";
                 return METRIX_PROBLEME;
             }
+            LOG(info) << "YJ, j1 "<< j1 <<  " cur =>  " << coefs_[j1];
+            LOG(info) << "YJ, j1+1 "<< (j1+1) <<  " cur+1 =>  " << coefs_[j1+1];
         }
     }
 
@@ -3585,7 +3636,7 @@ int Calculer::ajoutContrainteActivationParade(const std::shared_ptr<Incident>& p
         // Liberation de la variable entiere
         pbXmax_[parade->numVarActivation_] = 1;
         pbTypeDeVariable_[parade->numVarActivation_] = ENTIER;
-        LOG(debug) << "Ajout d'une contrainte d'activation pour la parade '" << parade->nom_ << "' sur '"
+        LOG(info) << "::Ajout d'une contrainte d'activation pour la parade '" << parade->nom_ << "' sur '"
                    << contrainte->elemAS_->nom_ << "'";
     }
     return METRIX_PAS_PROBLEME;
@@ -3644,11 +3695,14 @@ int Calculer::ajoutContraintes(bool& existe_contrainte_active,
         const auto& icdt = contrainte->icdt_;
 
         // C'est la premiere contrainte d'un incident avec parades : ajout de toutes les parades dans le probleme
+        if(icdt)
+        {
+            LOG(info) << "Nb ictd parades=" << icdt->parades_.size() << " is active ? " << icdt->paradesActivees_;
+        }
         if (icdt && !icdt->parades_.empty() && !icdt->paradesActivees_) {
             std::vector<std::shared_ptr<Incident>> paradesAjoutees;
             icdt->paradesActivees_ = true;
             paradesActiveesDansMicroiteration.insert(icdt);
-
 
             for (unsigned int u = 0; u < icdt->parades_.size(); ++u) {
                 // Lors du 1er ajout de contraintes avec cet incident, (paradesActivees_ = false)
@@ -3684,13 +3738,13 @@ int Calculer::ajoutContraintes(bool& existe_contrainte_active,
                     parade->numVarActivation_ = ajouterVariableEntiere(
                         parade->num_,
                         config::constants::cost_parade * proba * static_cast<double>(icdt->contraintes_.size()));
-
+                    LOG(info) << "Ajout var " << icdt->num_ << " avec cout " << config::constants::cost_parade * proba * static_cast<double>(icdt->contraintes_.size());
                     if (!parade->contraintesAutorisees_.empty()
                         && parade->contraintesAutorisees_.find(contrainte->elemAS_)
                                == parade->contraintesAutorisees_.end()) {
                         pbTypeDeVariable_[parade->numVarActivation_] = REEL;
                         pbXmax_[parade->numVarActivation_] = 0;
-                        LOG(debug) << "Variable no " << parade->numVarActivation_ << " de la parade '" << parade->nom_
+                        LOG(info) << "Variable no " << parade->numVarActivation_ << " de la parade '" << parade->nom_
                                    << "' desactivee.";
                     }
 
@@ -4056,6 +4110,9 @@ int Calculer::ajoutContrainte(const std::shared_ptr<Contrainte>& ctre, const std
 
         // calcul des coeffs a mettre dans la matrice du simplexe pour introduire la contrainte
         codeRet = coeffPourQuadInc(quad, ctre, secondMembreFixe, sumcoeffFixe, coeff);
+        for(size_t i =0; i < coefs_.size(); i++ ) {
+            LOG(info) << "YJ: i = " << i << " : " << coefs_[i] << " and isFixed? " << (pbTypeDeBorneDeLaVariable_[i] == VARIABLE_FIXE);
+        }
         if (codeRet == METRIX_PROBLEME) {
             return METRIX_PROBLEME;
         }
@@ -4249,7 +4306,7 @@ int Calculer::ajoutContrainteValorisationPoche(const std::shared_ptr<Incident>& 
 
     secondMembre += valoMax;
     pbSecondMembre_.push_back(secondMembre);
-
+    LOG(info) << "YJ: contrainte L de ValoPoche 1 numero " << (pbSens_.size()-1) << " rhs = " << secondMembre;
     pbXmax_.push_back(std::max(valoMax, 0.)); // securite, ne devrait pas arriver
 
     nbElmdeMatrContraint_ += nbTermes;
@@ -4277,7 +4334,7 @@ int Calculer::fixerProdSansReseau()
 
     for (const auto& elem : res_.groupes_) {
         const auto& grpe = elem.second;
-
+        LOG(info) << "prodAjust ? " <<grpe->prodAjust_;
         if (grpe->etat_ && grpe->prodAjust_ != Groupe::NON_HR_AR) {
             // Phase AR, on remet la puisMin e sa valeur
             grpe->puisMin_ = grpe->puisMinAR_;
@@ -4292,7 +4349,8 @@ int Calculer::fixerProdSansReseau()
             if (grpe->noeud_->numCompSynch_ > 0) {
                 pbSecondMembre_[grpe->noeud_->numCompSynch_] -= deltaProdHR;
             }
-
+            LOG(info) << "YJ: fixerProdSansReseau 0, rhs = " << pbSecondMembre_[0];
+            LOG(info) << "YJ: fixerProdSansReseau de "<< grpe->noeud_->numCompSynch_ <<", rhs = " << pbSecondMembre_[grpe->noeud_->numCompSynch_];
             if (grpe->prodAjust_ == Groupe::OUI_HR_AR || grpe->prodAjust_ == Groupe::OUI_AR) {
                 const auto& config = config::configuration();
                 pbX_[numVar] = 0.0;
@@ -4312,6 +4370,8 @@ int Calculer::fixerProdSansReseau()
                                    == config::Configuration::ComputationType::OPF_WITHOUT_REDISPATCH)
                                       ? 0.
                                       : grpe->puisMax_ - grpe->prod_;
+                LOG(info) << " 20 pbXmax_ "<< numVar << " ? " << (config.computationType()
+                                   == config::Configuration::ComputationType::OPF_WITHOUT_REDISPATCH) <<  "to " << pbXmax_[numVar];
                 pbXmin_[numVar + 1] = 0.;
 
                 double value = 0.0;
@@ -4319,14 +4379,17 @@ int Calculer::fixerProdSansReseau()
                     && config.computationType() != config::Configuration::ComputationType::OPF_WITHOUT_REDISPATCH) {
                     value = grpe->prod_ - grpe->puisMin_;
                 }
+                LOG(info) << " 21 pbXmax_ "<< numVar+1 << " ? " << (grpe->prod_ >= grpe->puisMin_) << " && ? " << (config.computationType() != config::Configuration::ComputationType::OPF_WITHOUT_REDISPATCH) <<  "to " << value;
                 pbXmax_[numVar + 1] = value;
             } else {
                 pbCoutLineaire_[numVar] = config::configuration().noiseCost();
                 pbCoutLineaire_[numVar + 1] = config::configuration().noiseCost();
                 pbXmin_[numVar] = 0.;
                 pbXmax_[numVar] = 0.;
+                LOG(info) << " 22 pbXmax_ "<< numVar << " to 0.";
                 pbXmin_[numVar + 1] = 0.;
                 pbXmax_[numVar + 1] = 0.;
+                LOG(info) << " 23 pbXmax_ "<< numVar+1 << " to 0.";
             }
 
             // Remarque traitements effectues pour la resolution du probleme
@@ -4335,10 +4398,12 @@ int Calculer::fixerProdSansReseau()
 
             if (pbXmax_[numVar] - pbXmin_[numVar] < config::constants::epsilon) {
                 pbTypeDeBorneDeLaVariable_[numVar] = VARIABLE_FIXE;
+                LOG(info) << " VARFIX 10 maxmin "<< numVar;
                 pbX_[numVar] = pbXmin_[numVar];
             }
             if (pbXmax_[numVar + 1] - pbXmin_[numVar + 1] < config::constants::epsilon) {
                 pbTypeDeBorneDeLaVariable_[numVar + 1] = VARIABLE_FIXE;
+                LOG(info) << " VARFIX +1 10 maxmin "<< (numVar+1);
                 pbX_[numVar + 1] = pbXmin_[numVar + 1];
             }
         }
@@ -4354,6 +4419,7 @@ int Calculer::interdireDefaillance()
     int finVarConsos = res_.nbVarGroupes_ + res_.nbVarConsos_;
     for (int varConso = res_.nbVarGroupes_; varConso < finVarConsos; ++varConso) {
         pbTypeDeBorneDeLaVariable_[varConso] = VARIABLE_FIXE;
+        LOG(info) << " VARFIX deffaill "<< varConso;
         pbXmin_[varConso] = pbX_[varConso];
         pbXmax_[varConso] = pbX_[varConso];
         pbCoutLineaire_[varConso] = 0;
