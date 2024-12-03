@@ -20,7 +20,7 @@ cf. README.md
 
 ## I/O
 
-cf. DOC.md
+cf. io_doc.md
 
 ## Launching
 
