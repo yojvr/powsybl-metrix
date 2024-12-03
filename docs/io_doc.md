@@ -58,6 +58,10 @@ La valeur par défaut configurée dans METRIX est indiquée entre parenthèses. 
 | LIMCURGR | | | Limite de redispatching curatif<br>= curativeRedispatchingLimit(-1) |
 | ADEQUAOF | | | Offset des coûts de groupes et de délestage dans la phase d’équilibrage<br>= adequacyCostOffset(0) |
 | REDISPOF | | | Offset des coûts de groupes et de délestage dans la phase de redispatching<br>= redispatchingCostOffset(0) |
+| COUTECAR | | | Coût variable d'écart<br>Valeur par défaut = 10 |
+| NULLCOST | | | Bruit des coûts null = 0.5 |
+| WRIPTDFS | | | Écriture des fichiers des matrices des PTDFs en N et par variante.<br>Valeur par défaut = false |
+| LOSTCMAX | | | Nombre maximum de charges qui peuvent être perdues.<br>Valeur par défaut = 100U |
 
 ## Options de résultats <a id="results_options"></a>
 | Nom | Type | Taille | Description |
