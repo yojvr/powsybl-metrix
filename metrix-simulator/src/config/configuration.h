@@ -189,6 +189,8 @@ public:
     int costEcart() const { return cost_ecart_; }
     double noiseCost() const { return noise_cost_; }
 
+    bool writePTDFs() const { return write_ptdfs_; }
+
     unsigned int lostLoadDetailedMax() const { return lost_load_detailed_max_; }
 
     // setters to force their value
@@ -354,6 +356,8 @@ private:
     int redispatch_cost_offset_;
     int cost_ecart_;
     double noise_cost_;
+
+    bool write_ptdfs_;
 
     unsigned int lost_load_detailed_max_;
 

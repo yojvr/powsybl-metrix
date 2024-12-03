@@ -229,7 +229,6 @@ int Calculer::resolutionProbleme()
         if (!mapVar->first.empty()) {
             // mise a jour de la topologie du reseau pour prendre en compte les modifications quadin
             status = res_.modifReseauTopo(quads);
-
             if (status != METRIX_PAS_PROBLEME) {
                 LOG_ALL(warning) << "probleme lors de la modification du reseau pour:";
                 afficherVariantesCle(variantesOrdonnees_, quads);
@@ -264,13 +263,7 @@ int Calculer::resolutionProbleme()
         // LODFs assessment and print:
         status = calculReportInfluencement();
 
-        // PTDFs assessment and print:
-        string PTDFfileName = "PTDF_matrix.csv";
-        if (config::inputConfiguration().writePTDFfile()) {
-            assessAndPrintPTDF(PTDFfileName);
-        }
-
-        auto varEnd = mapVar->second.end();
+        auto varEnd = mapVar->second.end();        
         for (auto var = mapVar->second.begin(); var != varEnd; ++var) {
             varianteCourante_ = (*var);
 
@@ -282,6 +275,12 @@ int Calculer::resolutionProbleme()
 
             // Update of the remaining elements of the network for each variant
             status = res_.modifReseau(varianteCourante_);
+
+            // PTDFs assessment and print:
+            std::string PTDFfileName = "PTDF_matrix_var"+std::to_string(varianteCourante_->num_)+".csv";
+            if (config::inputConfiguration().writePTDFfile() || config::configuration().writePTDFs()) {
+                assessAndPrintPTDF(PTDFfileName);
+            }
 
             if (status != METRIX_PAS_PROBLEME) {
                 metrix2Assess(varianteCourante_, vector<double>(), METRIX_VARIANTE_IGNOREE);
