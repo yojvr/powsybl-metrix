@@ -428,6 +428,8 @@ Notons *EPSILON_SORTIES = 0.05*.
 | *incident cause du N $^{ème}$ transit max sur  incident* | | | *Autant de résultats que demandé dans les paramètres* |
 | *N $^{ème}$ transit max sur incident* | | | |
 
+**Note** : ce tableau n'est pas écrit si il n'y a pas d'incident sur le réseau.
+
 **Tableau R3C** : transits spécifique sur incident : ```R3C ;PAR LIGNE;LIGNE;INCIDENT;TRANSIT;```
 | | | | |
 | :-- | :-- | :-- | :-- |
@@ -533,7 +535,7 @@ Il est également possible d'afficher les logs sur la sortie standard via l'opti
 
 Un fichier *LODF_matrix.csv* est généré si l'opion *--write-LODF* est renseignée. Ce fichier correspond à la matrice LODF (Line Outage Distribution Factor) de la dernière variante simulée.
 
-### Fichiers PTDF
+### Fichier PTDF
 
 Des fichiers *PTDF_matrix_<numéroVariante>.csv* sont générés si l'opion *--write-PTDF* est renseignée en ligne de commande ou si l'option *WRIPTDFS* est à *True* dans le fichier json d'entrée. Ces fichier correspond à la matrice PTDF (Power Transfer Distribution Factor) de chacune des variantes simulées. 
 
